@@ -17,7 +17,7 @@
     document.getElementById('connectButton').addEventListener('click', async () => {
       try {
         bluetoothDevice = await navigator.bluetooth.requestDevice({
-          filters: [{ name: 'HC-05' }],
+          acceptAllDevices: true,
           optionalServices: ['00001101-0000-1000-8000-00805f9b34fb']
         });
 
