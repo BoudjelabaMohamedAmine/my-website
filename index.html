@@ -3,22 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bluetooth Device Connection</title>
+    <title>Automatic Bluetooth Connection</title>
     <style>
-        video {
-            width: 100%;
-            max-width: 600px;
-            border: 2px solid #ccc;
-            border-radius: 10px;
-        }
-        #result {
-            margin-top: 20px;
-            font-size: 18px;
-            font-weight: bold;
-            color: #333;
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
         }
         button {
-            margin-top: 20px;
             padding: 10px 20px;
             font-size: 16px;
             border: none;
@@ -30,98 +21,46 @@
         button:hover {
             background-color: #0056b3;
         }
-        #bluetooth-devices ul {
-            list-style-type: none;
-            padding: 0;
-        }
-        #bluetooth-devices li {
-            margin: 10px 0;
-            font-size: 16px;
+        #status {
+            margin-top: 20px;
+            font-size: 18px;
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
-    <h1>Bluetooth Device Connection</h1>
-    
-    <!-- Camera Display -->
-    <video id="camera" autoplay playsinline></video>
-    <div id="result">QR Code Result: <span id="qr-result">None</span></div>
-    
-    <!-- Bluetooth Connection -->
-    <button id="scan-bluetooth">Scan Bluetooth Devices</button>
-    <div id="bluetooth-devices">
-        <h2>Available Bluetooth Devices:</h2>
-        <ul id="device-list"></ul>
-    </div>
-    <div id="connection-status" style="margin-top: 20px; font-size: 18px; color: green;"></div>
+    <h1>Automatic Bluetooth Connection</h1>
+    <button id="connect">Connect to Device</button>
+    <div id="status">Status: Not connected</div>
 
-    <script src="https://unpkg.com/@zxing/library@latest"></script>
     <script>
-        const deviceList = document.getElementById('device-list');
-        const connectionStatus = document.getElementById('connection-status');
+        const targetDeviceName = "HC-05"; // Replace with the name of your device
 
-        // Scan and display available Bluetooth devices
-        document.getElementById('scan-bluetooth').addEventListener('click', async () => {
+        document.getElementById('connect').addEventListener('click', async () => {
+            const statusElement = document.getElementById('status');
+            statusElement.textContent = "Status: Searching for device...";
+
             try {
+                // Search for a Bluetooth device by name
                 const device = await navigator.bluetooth.requestDevice({
-                    acceptAllDevices: true, // Allow all devices
-                    optionalServices: ['battery_service'] // Replace with actual service UUID if needed
+                    acceptAllDevices: false,
+                    filters: [
+                        { name: targetDeviceName } // Replace with the exact name of your device
+                    ],
+                    optionalServices: ['battery_service'] // Replace with a relevant service UUID
                 });
 
-                // Add device name to the list
-                const listItem = document.createElement('li');
-                listItem.textContent = `Device Name: ${device.name || 'Unknown'} - ID: ${device.id}`;
-                listItem.style.cursor = 'pointer';
-                listItem.style.color = 'blue';
+                statusElement.textContent = `Status: Found ${device.name}, connecting...`;
 
-                // Attempt to connect when clicked
-                listItem.addEventListener('click', async () => {
-                    try {
-                        connectionStatus.textContent = `Connecting to ${device.name || 'Unknown'}...`;
-                        const server = await device.gatt.connect();
-                        connectionStatus.textContent = `Connected to ${device.name || 'Unknown'}`;
-                        console.log('Connected to:', device.name);
-                    } catch (connectError) {
-                        connectionStatus.textContent = `Failed to connect to ${device.name || 'Unknown'}`;
-                        console.error('Connection failed:', connectError);
-                    }
-                });
-
-                deviceList.appendChild(listItem);
+                // Connect to the GATT server
+                const server = await device.gatt.connect();
+                statusElement.textContent = `Status: Connected to ${device.name}`;
+                console.log(`Connected to ${device.name}`);
             } catch (error) {
-                console.error('Error scanning for Bluetooth devices:', error);
-                alert('Failed to scan for Bluetooth devices. Please try again.');
+                console.error('Error connecting to the device:', error);
+                statusElement.textContent = "Status: Connection failed. Please try again.";
             }
         });
-
-        // QR Code Scanner (Optional, based on original request)
-        const videoElement = document.getElementById('camera');
-        const qrResultElement = document.getElementById('qr-result');
-
-        async function startCamera() {
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({
-                    video: { facingMode: "environment" },
-                    audio: false
-                });
-                videoElement.srcObject = stream;
-
-                const codeReader = new ZXing.BrowserQRCodeReader();
-                codeReader.timeBetweenScansMillis = 200;
-                codeReader.decodeFromVideoDevice(null, videoElement, (result, err) => {
-                    if (result) {
-                        qrResultElement.textContent = result.text;
-                    } else if (err && !(err instanceof ZXing.NotFoundException)) {
-                        console.error(err);
-                    }
-                });
-            } catch (error) {
-                console.error('Error accessing the camera:', error);
-                alert('Could not access the camera. Please make sure permissions are granted.');
-            }
-        }
-
-        startCamera();
     </script>
 </body>
 </html>
