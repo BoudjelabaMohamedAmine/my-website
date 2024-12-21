@@ -20,7 +20,7 @@
         document.getElementById('connectButton').addEventListener('click', () => {
             navigator.bluetooth.requestDevice({
                 acceptAllDevices: true, // Accept any Bluetooth device
-                optionalServices: ['battery_service'] // Optional, to get some information
+                optionalServices: ['battery_service', 'heart_rate'] // Optional services to detect more devices
             })
             .then(device => {
                 const deviceList = document.getElementById('deviceList');
@@ -30,6 +30,7 @@
             })
             .catch(error => {
                 console.error("Error: ", error);
+                alert("An error occurred while scanning for devices.");
             });
         });
     </script>
