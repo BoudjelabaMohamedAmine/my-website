@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smartphone Camera</title>
+    <title>Smartphone Camera & Bluetooth</title>
     <style>
         video {
             width: 100%;
@@ -17,32 +17,47 @@
             font-weight: bold;
             color: #333;
         }
+        button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 16px;
+            border: none;
+            background-color: #007bff;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
     </style>
 </head>
 <body>
-    <h1>Display Smartphone Camera</h1>
+    <h1>Display Smartphone Camera & Bluetooth</h1>
+    
+    <!-- Camera Display -->
     <video id="camera" autoplay playsinline></video>
     <div id="result">QR Code Result: <span id="qr-result">None</span></div>
-    <button id="connect-bluetooth">Connect to HC-05</button>
+    
+    <!-- Bluetooth Connection -->
+    <button id="connect-bluetooth">Connect to Bluetooth</button>
 
     <script src="https://unpkg.com/@zxing/library@latest"></script>
     <script>
+        // QR Code Scanner and Camera Access
         const videoElement = document.getElementById('camera');
         const qrResultElement = document.getElementById('qr-result');
 
-        // Access the camera
         async function startCamera() {
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({
-                    video: {
-                        facingMode: "environment" // Use "user" for front camera
-                    },
+                    video: { facingMode: "environment" }, // Back camera
                     audio: false
                 });
                 videoElement.srcObject = stream;
 
                 const codeReader = new ZXing.BrowserQRCodeReader();
-                codeReader.timeBetweenScansMillis = 200; // Set the interval for scanning to 200ms
+                codeReader.timeBetweenScansMillis = 200; // Scanning interval
                 codeReader.decodeFromVideoDevice(null, videoElement, (result, err) => {
                     if (result) {
                         qrResultElement.textContent = result.text;
@@ -51,28 +66,29 @@
                     }
                 });
             } catch (error) {
-                console.error('Error accessing the camera: ', error);
+                console.error('Error accessing the camera:', error);
                 alert('Could not access the camera. Please make sure permissions are granted.');
             }
         }
 
         startCamera();
 
-        // Connect to Bluetooth HC-05
+        // Bluetooth Connection
         document.getElementById('connect-bluetooth').addEventListener('click', async () => {
             try {
+                // Show all Bluetooth devices for manual selection
                 const device = await navigator.bluetooth.requestDevice({
-                    acceptAllDevices: false,
-                    filters: [{ name: 'HC-05' }],
-                    optionalServices: ['00001101-0000-1000-8000-00805f9b34fb']
+                    acceptAllDevices: true, // Allow all devices
+                    optionalServices: ['battery_service'] // Example optional service
                 });
 
+                // Connect to the selected device
                 const server = await device.gatt.connect();
-                console.log('Connected to HC-05:', device.name);
-                alert('Successfully connected to HC-05 Bluetooth device.');
+                console.log('Connected to:', device.name);
+                alert(`Successfully connected to ${device.name}`);
             } catch (error) {
                 console.error('Error connecting to Bluetooth device:', error);
-                alert('Failed to connect to HC-05. Please try again.');
+                alert('Failed to connect to the Bluetooth device. Please try again.');
             }
         });
     </script>
