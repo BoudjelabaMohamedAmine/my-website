@@ -1,38 +1,33 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bluetooth Devices</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HC-05 Arduino Connection</title>
 </head>
 <body>
-    <h1>Available Bluetooth Devices</h1>
-    <button id="connectButton">Scan for Bluetooth Devices</button>
-    <ul id="deviceList"></ul>
+  <h1>Connect to HC-05 Bluetooth Module</h1>
+  <button id="connectButton">Connect</button>
+  <p id="status">Status: Disconnected</p>
 
-    <script>
-        // Check if the Web Bluetooth API is supported
-        if (!navigator.bluetooth) {
-            alert("Web Bluetooth is not supported in your browser.");
-        }
+  <script>
+    let bluetoothDevice;
+    let statusElement = document.getElementById('status');
 
-        // Function to start scanning for Bluetooth devices
-        document.getElementById('connectButton').addEventListener('click', () => {
-            navigator.bluetooth.requestDevice({
-                acceptAllDevices: true, // Accept any Bluetooth device
-                optionalServices: ['battery_service', 'heart_rate'] // Optional services to detect more devices
-            })
-            .then(device => {
-                const deviceList = document.getElementById('deviceList');
-                const listItem = document.createElement('li');
-                listItem.textContent = `${device.name || 'Unknown Device'} - ${device.id}`;
-                deviceList.appendChild(listItem);
-            })
-            .catch(error => {
-                console.error("Error: ", error);
-                alert("An error occurred while scanning for devices.");
-            });
+    document.getElementById('connectButton').addEventListener('click', async () => {
+      try {
+        bluetoothDevice = await navigator.bluetooth.requestDevice({
+          filters: [{ name: 'HC-05' }],
+          optionalServices: ['00001101-0000-1000-8000-00805f9b34fb']
         });
-    </script>
+
+        const server = await bluetoothDevice.gatt.connect();
+        statusElement.textContent = 'Status: Connected';
+      } catch (error) {
+        console.error('Connection failed', error);
+        statusElement.textContent = 'Status: Connection failed';
+      }
+    });
+  </script>
 </body>
 </html>
