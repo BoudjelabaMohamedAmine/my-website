@@ -3,62 +3,63 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Automatic Bluetooth Connection</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-        }
-        button {
-            padding: 10px 20px;
-            font-size: 16px;
-            border: none;
-            background-color: #007bff;
-            color: white;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: #0056b3;
-        }
-        #status {
-            margin-top: 20px;
-            font-size: 18px;
-            font-weight: bold;
-        }
-    </style>
+    <title>Connect to HC-05</title>
 </head>
 <body>
-    <h1>Automatic Bluetooth Connection</h1>
-    <button id="connect">Connect to Device</button>
-    <div id="status">Status: Not connected</div>
+    <h1>Connect to HC-05 Bluetooth Module</h1>
+    <p>This page allows you to connect and communicate with an HC-05 Bluetooth module.</p>
+
+    <button id="connectButton">Connect to HC-05</button>
+    <textarea id="dataOutput" rows="10" cols="50" readonly placeholder="Received data will appear here..."></textarea>
+    <input type="text" id="dataInput" placeholder="Enter data to send">
+    <button id="sendButton">Send Data</button>
 
     <script>
-        const targetDeviceName = "HC-05"; // Replace with the name of your device
+        let bluetoothDevice;
+        let writer;
 
-        document.getElementById('connect').addEventListener('click', async () => {
-            const statusElement = document.getElementById('status');
-            statusElement.textContent = "Status: Searching for device...";
-
+        document.getElementById('connectButton').addEventListener('click', async () => {
             try {
-                // Search for a Bluetooth device by name
-                const device = await navigator.bluetooth.requestDevice({
-                    acceptAllDevices: false,
-                    filters: [
-                        { name: targetDeviceName } // Replace with the exact name of your device
-                    ],
-                    optionalServices: ['battery_service'] // Replace with a relevant service UUID
+                bluetoothDevice = await navigator.bluetooth.requestDevice({
+                    acceptAllDevices: true,
+                    optionalServices: ['00001101-0000-1000-8000-00805f9b34fb'] // SPP UUID
                 });
 
-                statusElement.textContent = `Status: Found ${device.name}, connecting...`;
+                const server = await bluetoothDevice.gatt.connect();
+                const service = await server.getPrimaryService('00001101-0000-1000-8000-00805f9b34fb');
+                const characteristic = await service.getCharacteristic('00002a00-0000-1000-8000-00805f9b34fb');
 
-                // Connect to the GATT server
-                const server = await device.gatt.connect();
-                statusElement.textContent = `Status: Connected to ${device.name}`;
-                console.log(`Connected to ${device.name}`);
+                writer = characteristic;
+                alert('Connected to HC-05!');
+
+                characteristic.addEventListener('characteristicvaluechanged', (event) => {
+                    const value = new TextDecoder().decode(event.target.value);
+                    document.getElementById('dataOutput').value += `\n${value}`;
+                });
+                await characteristic.startNotifications();
+
             } catch (error) {
-                console.error('Error connecting to the device:', error);
-                statusElement.textContent = "Status: Connection failed. Please try again.";
+                console.error('Failed to connect:', error);
+                alert('Could not connect to the HC-05. Please try again.');
+            }
+        });
+
+        document.getElementById('sendButton').addEventListener('click', async () => {
+            if (!writer) {
+                alert('You need to connect to the HC-05 first.');
+                return;
+            }
+
+            const data = document.getElementById('dataInput').value;
+            if (data) {
+                try {
+                    const encoder = new TextEncoder();
+                    await writer.writeValue(encoder.encode(data));
+                    alert('Data sent!');
+                } catch (error) {
+                    console.error('Failed to send data:', error);
+                    alert('Could not send data. Please try again.');
+                }
             }
         });
     </script>
