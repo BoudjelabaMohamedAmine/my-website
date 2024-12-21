@@ -23,6 +23,7 @@
     <h1>Display Smartphone Camera</h1>
     <video id="camera" autoplay playsinline></video>
     <div id="result">QR Code Result: <span id="qr-result">None</span></div>
+    <button id="connect-bluetooth">Connect to HC-05</button>
 
     <script src="https://unpkg.com/@zxing/library@latest"></script>
     <script>
@@ -56,6 +57,24 @@
         }
 
         startCamera();
+
+        // Connect to Bluetooth HC-05
+        document.getElementById('connect-bluetooth').addEventListener('click', async () => {
+            try {
+                const device = await navigator.bluetooth.requestDevice({
+                    acceptAllDevices: false,
+                    filters: [{ name: 'HC-05' }],
+                    optionalServices: ['00001101-0000-1000-8000-00805f9b34fb']
+                });
+
+                const server = await device.gatt.connect();
+                console.log('Connected to HC-05:', device.name);
+                alert('Successfully connected to HC-05 Bluetooth device.');
+            } catch (error) {
+                console.error('Error connecting to Bluetooth device:', error);
+                alert('Failed to connect to HC-05. Please try again.');
+            }
+        });
     </script>
 </body>
 </html>
