@@ -41,6 +41,7 @@
                 videoElement.srcObject = stream;
 
                 const codeReader = new ZXing.BrowserQRCodeReader();
+                codeReader.timeBetweenScansMillis = 500; // Set the interval for scanning to 500ms
                 codeReader.decodeFromVideoDevice(null, videoElement, (result, err) => {
                     if (result) {
                         qrResultElement.textContent = result.text;
