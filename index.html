@@ -6,7 +6,7 @@
   <title>HC-05 Arduino Connection</title>
 </head>
 <body>
-  <h1>Connect to HC-05 Bluetooth Module</h1>
+  <h1>Connect to Bluetooth Device</h1>
   <button id="connectButton">Connect</button>
   <p id="status">Status: Disconnected</p>
 
@@ -16,13 +16,20 @@
 
     document.getElementById('connectButton').addEventListener('click', async () => {
       try {
-        bluetoothDevice = await navigator.bluetooth.requestDevice({
-          acceptAllDevices: true,
-          optionalServices: ['00001101-0000-1000-8000-00805f9b34fb']
+        const devices = await navigator.bluetooth.requestDevice({
+          acceptAllDevices: true
         });
 
-        const server = await bluetoothDevice.gatt.connect();
-        statusElement.textContent = 'Status: Connected';
+        // Filter out HC-05 devices
+        const filteredDevices = devices.filter(device => device.name !== 'HC-05');
+
+        if (filteredDevices.length > 0) {
+          bluetoothDevice = filteredDevices[0];
+          const server = await bluetoothDevice.gatt.connect();
+          statusElement.textContent = 'Status: Connected';
+        } else {
+          statusElement.textContent = 'Status: No suitable devices found';
+        }
       } catch (error) {
         console.error('Connection failed', error);
         statusElement.textContent = 'Status: Connection failed';
