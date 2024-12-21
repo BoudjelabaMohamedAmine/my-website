@@ -40,13 +40,18 @@
     <div id="result">QR Code Result: <span id="qr-result">None</span></div>
     
     <!-- Bluetooth Connection -->
-    <button id="connect-bluetooth">Connect to Bluetooth</button>
+    <button id="connect-bluetooth">Scan Bluetooth Devices</button>
+    <div id="bluetooth-devices">
+        <h2>Available Bluetooth Devices:</h2>
+        <ul id="device-list"></ul>
+    </div>
 
     <script src="https://unpkg.com/@zxing/library@latest"></script>
     <script>
         // QR Code Scanner and Camera Access
         const videoElement = document.getElementById('camera');
         const qrResultElement = document.getElementById('qr-result');
+        const deviceList = document.getElementById('device-list');
 
         async function startCamera() {
             try {
@@ -73,19 +78,22 @@
 
         startCamera();
 
-        // Bluetooth Connection
+        // Bluetooth Device Scan and Display Names
         document.getElementById('connect-bluetooth').addEventListener('click', async () => {
             try {
-                // Show all Bluetooth devices for manual selection
+                // Show available Bluetooth devices
                 const device = await navigator.bluetooth.requestDevice({
                     acceptAllDevices: true, // Allow all devices
                     optionalServices: ['battery_service'] // Example optional service
                 });
 
-                // Connect to the selected device
-                const server = await device.gatt.connect();
-                console.log('Connected to:', device.name);
-                alert(`Successfully connected to ${device.name}`);
+                // Add device name to the list
+                const listItem = document.createElement('li');
+                listItem.textContent = `Device Name: ${device.name || 'Unknown'} - ID: ${device.id}`;
+                deviceList.appendChild(listItem);
+
+                console.log('Connected to device:', device.name, device.id);
+                alert(`You selected: ${device.name || 'Unknown Device'}`);
             } catch (error) {
                 console.error('Error connecting to Bluetooth device:', error);
                 alert('Failed to connect to the Bluetooth device. Please try again.');
