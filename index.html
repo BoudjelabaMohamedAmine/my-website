@@ -11,14 +11,23 @@
             border: 2px solid #ccc;
             border-radius: 10px;
         }
+        #result {
+            margin-top: 20px;
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+        }
     </style>
 </head>
 <body>
     <h1>Display Smartphone Camera</h1>
     <video id="camera" autoplay playsinline></video>
+    <div id="result">QR Code Result: <span id="qr-result">None</span></div>
 
+    <script src="https://unpkg.com/@zxing/library@latest"></script>
     <script>
         const videoElement = document.getElementById('camera');
+        const qrResultElement = document.getElementById('qr-result');
 
         // Access the camera
         async function startCamera() {
@@ -30,6 +39,15 @@
                     audio: false
                 });
                 videoElement.srcObject = stream;
+
+                const codeReader = new ZXing.BrowserQRCodeReader();
+                codeReader.decodeFromVideoDevice(null, videoElement, (result, err) => {
+                    if (result) {
+                        qrResultElement.textContent = result.text;
+                    } else if (err && !(err instanceof ZXing.NotFoundException)) {
+                        console.error(err);
+                    }
+                });
             } catch (error) {
                 console.error('Error accessing the camera: ', error);
                 alert('Could not access the camera. Please make sure permissions are granted.');
