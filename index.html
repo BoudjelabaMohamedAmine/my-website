@@ -21,7 +21,7 @@
         });
 
         // Filter out HC-05 devices
-        const filteredDevices = devices.filter(device => device.name !== 'HC-05');
+        const filteredDevices = devices.filter(device => device.name);
 
         if (filteredDevices.length > 0) {
           bluetoothDevice = filteredDevices[0];
