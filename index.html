@@ -43,9 +43,14 @@
 
                 const codeReader = new ZXing.BrowserQRCodeReader();
                 codeReader.timeBetweenScansMillis = 200; // Set the interval for scanning to 200ms
-                codeReader.decodeFromVideoDevice(null, videoElement, (result, err) => {
+                codeReader.decodeFromVideoDevice(null, videoElement, async (result, err) => {
                     if (result) {
                         qrResultElement.textContent = result.text;
+                        const qrData = result.text;
+                        const timestamp = new Date().toLocaleString();
+
+                        // Save QR code data and timestamp to Google Sheets
+                        await saveToGoogleSheet(qrData, timestamp);
                     } else if (err && !(err instanceof ZXing.NotFoundException)) {
                         console.error(err);
                     }
@@ -75,6 +80,37 @@
                 alert('Failed to connect to HC-05. Please try again.');
             }
         });
+
+        // Function to save data to Google Sheets
+        async function saveToGoogleSheet(qrData, timestamp) {
+            const sheetId = '1hJquPyFwplQq8b7I9drMvZyMmPxYwpz5Vo3mySxYaDo'; // Replace with your Google Sheets ID
+            const apiKey = ' 112641058688130007926'; // Replace with your Google API key
+            const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/Sheet1!A1:B1:append?valueInputOption=RAW&key=${apiKey}`;
+
+            const data = {
+                range: "Sheet1!A1:B1",
+                majorDimension: "ROWS",
+                values: [
+                    [timestamp, qrData]
+                ]
+            };
+
+            const requestOptions = {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data),
+            };
+
+            try {
+                const response = await fetch(url, requestOptions);
+                const result = await response.json();
+                console.log('Data saved to Google Sheets:', result);
+            } catch (error) {
+                console.error('Error saving data to Google Sheets:', error);
+            }
+        }
     </script>
 </body>
 </html>
