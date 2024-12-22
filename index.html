@@ -3,33 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HC-05 Arduino Connection</title>
+    <title>Bluetooth Devices</title>
 </head>
 <body>
-    <h1>Connect to Bluetooth Device</h1>
-    <button id="connectButton">Connect</button>
-    <p id="status">Status: Disconnected</p>
+    <h1>Bluetooth Device Scanner</h1>
+    <button id="scanButton">Scan for Bluetooth Devices</button>
+    <ul id="deviceList"></ul>
 
     <script>
-        let bluetoothDevice;
-        let statusElement = document.getElementById('status');
+        document.getElementById('scanButton').addEventListener('click', async () => {
+            const deviceList = document.getElementById('deviceList');
+            deviceList.innerHTML = ''; // Clear the list
 
-        document.getElementById('connectButton').addEventListener('click', async () => {
             try {
+                // Request Bluetooth devices
                 const device = await navigator.bluetooth.requestDevice({
-                    filters: [{ services: ['battery_service'] }] // Example service, replace with the actual service UUID you need
+                    acceptAllDevices: true,
+                    optionalServices: ['battery_service'] // Example service
                 });
 
-                if (device) {
-                    bluetoothDevice = device;
-                    const server = await bluetoothDevice.gatt.connect();
-                    statusElement.textContent = 'Status: Connected';
-                } else {
-                    statusElement.textContent = 'Status: No suitable devices found';
-                }
+                // Display the device name
+                const listItem = document.createElement('li');
+                listItem.textContent = `Device: ${device.name || 'Unnamed'}, ID: ${device.id}`;
+                deviceList.appendChild(listItem);
+
+                console.log('Device selected:', device);
             } catch (error) {
-                console.error('Connection failed', error);
-                statusElement.textContent = 'Status: Connection failed';
+                console.error('Error accessing Bluetooth devices:', error);
+                alert('No device selected or an error occurred.');
             }
         });
     </script>
