@@ -1,38 +1,52 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bluetooth Devices</title>
-</head>
-<body>
-    <h1>Bluetooth Device Scanner</h1>
-    <button id="scanButton">Scan for Bluetooth Devices</button>
-    <ul id="deviceList"></ul>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Caméra iPhone</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        text-align: center;
+        margin: 0;
+        padding: 0;
+        background-color: #f4f4f9;
+      }
+      video {
+        width: 100%;
+        max-width: 600px;
+        height: auto;
+        border: 2px solid #ccc;
+        border-radius: 8px;
+        margin-top: 20px;
+      }
+      h1 {
+        color: #333;
+        margin-top: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Caméra de l'iPhone</h1>
+    <video id="camera" autoplay playsinline></video>
 
     <script>
-        document.getElementById('scanButton').addEventListener('click', async () => {
-            const deviceList = document.getElementById('deviceList');
-            deviceList.innerHTML = ''; // Clear the list
-
-            try {
-                // Request Bluetooth devices
-                const device = await navigator.bluetooth.requestDevice({
-                    acceptAllDevices: true,
-                    optionalServices: ['battery_service'] // Example service
-                });
-
-                // Display the device name
-                const listItem = document.createElement('li');
-                listItem.textContent = `Device: ${device.name || 'Unnamed'}, ID: ${device.id}`;
-                deviceList.appendChild(listItem);
-
-                console.log('Device selected:', device);
-            } catch (error) {
-                console.error('Error accessing Bluetooth devices:', error);
-                alert('No device selected or an error occurred.');
-            }
-        });
+      async function startCamera() {
+        try {
+          const constraints = {
+            video: { facingMode: "user" }, // "user" pour la caméra frontale, "environment" pour l'arrière.
+          };
+          const stream = await navigator.mediaDevices();
+          const videoElement = document.getElementById("camera");
+          videoElement.srcObject = stream;
+        } catch (error) {
+          console.error("Erreur lors de l’accès à la caméra:", error);
+          alert(
+            "Impossible d’accéder à la caméra. Vérifiez les autorisations."
+          );
+        }
+      }
+      startCamera();
     </script>
-</body>
+  </body>
 </html>
