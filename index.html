@@ -1,40 +1,37 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>HC-05 Arduino Connection</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HC-05 Arduino Connection</title>
 </head>
 <body>
-  <h1>Connect to Bluetooth Device</h1>
-  <button id="connectButton">Connect</button>
-  <p id="status">Status: Disconnected</p>
+    <h1>Connect to Bluetooth Device</h1>
+    <button id="connectButton">Connect</button>
+    <p id="status">Status: Disconnected</p>
 
-  <script>
-    let bluetoothDevice;
-    let statusElement = document.getElementById('status');
+    <script>
+        let bluetoothDevice;
+        let statusElement = document.getElementById('status');
 
-    document.getElementById('connectButton').addEventListener('click', async () => {
-      try {
-        const devices = await navigator.bluetooth.requestDevice({
-          acceptAllDevices: true
+        document.getElementById('connectButton').addEventListener('click', async () => {
+            try {
+                const device = await navigator.bluetooth.requestDevice({
+                    filters: [{ services: ['battery_service'] }] // Example service, replace with the actual service UUID you need
+                });
+
+                if (device) {
+                    bluetoothDevice = device;
+                    const server = await bluetoothDevice.gatt.connect();
+                    statusElement.textContent = 'Status: Connected';
+                } else {
+                    statusElement.textContent = 'Status: No suitable devices found';
+                }
+            } catch (error) {
+                console.error('Connection failed', error);
+                statusElement.textContent = 'Status: Connection failed';
+            }
         });
-
-        // Filter out HC-05 devices
-        const filteredDevices = devices.filter(device => device.name);
-
-        if (filteredDevices.length > 0) {
-          bluetoothDevice = filteredDevices[0];
-          const server = await bluetoothDevice.gatt.connect();
-          statusElement.textContent = 'Status: Connected';
-        } else {
-          statusElement.textContent = 'Status: No suitable devices found';
-        }
-      } catch (error) {
-        console.error('Connection failed', error);
-        statusElement.textContent = 'Status: Connection failed';
-      }
-    });
-  </script>
+    </script>
 </body>
 </html>
